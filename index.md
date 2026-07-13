@@ -21,6 +21,21 @@ Entrada de datos: recibe el stream de vídeo crudo en formato NV21 desde la cám
 Lógica principal / core del sistema: un pipeline en C++/JNI convierte el buffer YUV a RGB, lo alimenta a un modelo YOLO11 Pose en NCNN para extraer centroides y keypoints (cabeza y cola), un CentroidTracker empareja detecciones entre frames y una línea de conteo virtual incrementa el total cuando un vector cruza de arriba hacia abajo. El overlay de flechas se dibuja con una vista custom VectorOverlayView sobre el FPVWidget.
 Resultado esperado / acción física: el operador visualiza en pantalla el conteo total y la orientación de cada animal detectado; al activar REC, la app persiste pares .jpg + .txt (formato YOLO-Pose) con metadatos de georreferencia en Room, almacenándolos en VectorCount_Dataset para luego exportarlos como .zip y re-entrenar el modelo.
 
+BuscaBasura
+📌 Resumen
+BuscaBasura es una aplicación Android diseñada para operar desde una estación de vuelo (teléfono/tablet) conectada a un dron DJI. Su objetivo es detectar, georreferenciar y documentar focos de residuos (basurales) o humo mediante visión por computadora en tiempo real, mientras el dron sobrevuela el área de interés. El sistema combina la transmisión de video del dron, inferencia de modelos YOLOv11 optimizados para móvil y control de misión con palancas virtuales para el barrido sistemático de una zona.
+
+📊 Estado del Proyecto
+Nivel de avance: 60%
+Fase actual: Pendiente de pruebas de vuelo
+⚙️ Arquitectura Técnica
+Hardware / Plataforma: Dron DJI compatible con DJI Mobile SDK V5 (p. ej. Mavic 3 Enterprise, M300 RTK, M350 RTK, M30/M30T, Mini 4 Pro), controlador RC-N1, dispositivo Android objetivo (ARM64, optimizado para Redmi Note 13 Pro), cámara ancha/tele del dron y datos de GPS/RTK.
+Stack de Software: Kotlin + Java (Android), C++17 vía JNI, Android SDK 35 / NDK 26, DJI MSDK V5 5.16.0, UXSDK V5, Jetpack Compose, Room, OpenCV 4.10.0, NCNN, YOLOv11 (modelos .param/.bin), MapLibre (Mapbox SDK plugins), Gradle 8.4.2 y Ultralytics para validación del modelo.
+🚀 Descripción Funcional
+Entradas / datos de vuelo: recibe en tiempo real el stream de video en formato NV21 desde la cámara del dron, junto con la telemetría (ubicación 3D, altitud, actitud de aeronave y gimbal, batería, cantidad de satélites, modo de vuelo) y el estado de los sticks del radiocontrol; también permite importar o diseñar planes de misión en grilla y ajustar el punto de enfoque, zoom y exposición desde la pantalla táctil.
+Core / lógica principal: registra el SDK DJI, muestra el FPV en un SurfaceView, ejecuta inferencia asíncrona nativa con dos redes NCNN intercambiables (modo óptico "basura" y modo pseudotérmico "humo"), dibuja bounding boxes codificadas por confianza y altitud, y controla la cámara (foco, zoom, modo foto/video). El motor de misión VirtualStickMissionEngine navega punto a punto usando Haversine y rumbo, con interruptor de seguridad por control manual y persistencia del índice de waypoint para reanudación.
+Resultado esperado / acción física: el operador visualiza candidatos detectados y los confirma; por cada foco confirmado se genera un paquete de datos con imagen JPG, etiqueta YOLO .txt y metadato georreferenciado .geo (JSON), almacenado en disco y en base Room, y se puede consultar en la galería con mini-mapa. El dron puede realizar un barrido autónomo de grilla, detenerse ante RTH/batería baja y reanudar en el waypoint anterior.
+
 AppMaintenance
 📌 Resumen
 AppMaintenance es una aplicación Android nativa para la gestión de mantenimiento de activos agrícolas, orientada inicialmente a drones DJI Agras y sus componentes (baterías, cargadores y controles remotos). Centraliza el registro de equipos, el seguimiento de inventario de repuestos, la ejecución de procedimientos de mantenimiento y la generación de órdenes de trabajo, con sincronización de archivos adjuntos a Google Drive.
