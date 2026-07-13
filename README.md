@@ -2,7 +2,7 @@
 
 Bienvenido a mi portfolio de desarrollo. Aquí presento mis principales soluciones de software orientadas a potenciar las capacidades de vehículos aéreos no tripulados (UAVs), integrando visión por computadora, telemetría y procesamiento de datos en tiempo real.
 
-🌊 AI-HydroFlow Salado <Seleccionado para Showcase en el DJI AI Challenge 2026>
+🌊 AI-HydroFlow Rio Salado <Seleccionado para Showcase en el DJI AI Challenge 2026>
 
 ¿Qué hace?: Plataforma de vigilancia hidrológica autónoma para el rastreo en tiempo real de escurrimientos de agua en terrenos ultraplanos (Cuenca del Salado).
 
