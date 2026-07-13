@@ -91,6 +91,34 @@ Specialist in UAV-based environmental sensing, ROS 2 navigation systems and edge
 
 © 2026 Emiliano Perez — AI-HydroFlow Salado. Submitted to DJI Enterprise AI Challenge 2026.
 
+DroneInventoryScanner — Escáner de inventario con drone
+📌 Resumen
+Aplicación Android diseñada para escanear códigos de barras de forma manos libres durante operaciones de inventario con drones. Conecta un escáner de anillo Bluetooth mediante SPP (Serial Port Profile), valida los códigos recibidos, detecta duplicados, da feedback auditivo en español y exporta los registros a CSV, todo mientras corre como un servicio en primer plano que permite usar otras apps (p. ej. DJI Fly) al mismo tiempo.
+
+📊 Estado del Proyecto
+Nivel de avance: 80%
+Fase actual: Realizando pruebas de vuelo y ajustes de lectura de códigos de barra
+⚙️ Arquitectura Técnica
+Hardware / Plataforma:
+
+Dispositivo Android con Bluetooth clásico (mínimo Android 8.0 / API 26, target API 34).
+Dispositivo de referencia: Xiaomi Redmi Note 13 Pro.
+Escáner de anillo Bluetooth compatible con SPP (Serial Port Profile), UUID 00001101-0000-1000-8000-00805F9B34FB (ej. Eyoyo/Ring Scanners, JR Model HC-Z38W).
+Se usa junto con drones DJI como herramienta complementaria a DJI Fly; no integra SDK de dron.
+Stack de Software:
+
+Lenguaje: Kotlin.
+Plataforma: Android SDK, Gradle 7.4.2, Kotlin 1.8.0.
+Arquitectura: MVVM + Clean Architecture (data, bluetooth, service, ui, overlay, session).
+Librerías principales: Android Jetpack (ViewModel, LiveData, Lifecycle, AppCompat, ConstraintLayout, Material Design Components), Kotlin Coroutines.
+Sistema: Bluetooth SPP, Text-to-Speech en español (es_ES), MediaStore API para exportar a Downloads (con fallback a File API en Android 9-), SharedPreferences para sesión, WindowManager para overlays flotantes.
+Testing: JUnit 4, kotlinx-coroutines-test, AndroidJUnit4, Espresso.
+CI/CD: GitHub Actions (build de APK, ejecución de tests unitarios, release automático y commit de APK a release/).
+🚀 Descripción Funcional
+Entrada de datos: el usuario configura una sesión (Cliente y Sector) y conecta un escáner de anillo Bluetooth. Cada código de barras escaneado llega por SPP, se limpia de caracteres de control (\r, \n), se valida y se registra en memoria con timestamp.
+Lógica principal: un ScannerService en primer plano mantiene la conexión Bluetooth con auto-reconexión de hasta 5 intentos; ScanRepository detecta duplicados usando un jitter filter de 2 segundos y permite forzar la carga si el usuario lo decide; OverlayService muestra HUDs flotantes de éxito o duplicado sobre otras apps, mientras el TTS da feedback de voz en español.
+Resultado esperado: al finalizar la sesión se exporta un archivo CSV a la carpeta pública Downloads con el nombre [Cliente]_[Sector]_[AAAAMMDD_HHMMSS].csv, listo para auditoría o integración con sistemas de inventario, sin interrumpir la operación del dron.
+
 
 
 ConteoVectorial — Contador de Ganado con Visión por Computadora
