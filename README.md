@@ -51,3 +51,12 @@ Hardware utilizado: Dispositivos Android, Drones DJI Agras (T10 a T40), batería
 Lenguajes de programación: Kotlin.
 
 Mecánica de funcionamiento: Centraliza el registro de todos los equipos. Permite a los técnicos seguir el paso a paso de los manuales de mantenimiento, descuenta los repuestos utilizados del inventario de forma automática, y sincroniza toda la evidencia (fotos, reportes de reparación) directamente en la nube usando Google Drive.
+
+🛠️ OBD Drone (Agras Torque)
+¿Qué hace?: Aplicación Android de diagnóstico técnico y mantenimiento para drones agrícolas DJI Agras y sus ecosistemas periféricos.
+
+Hardware utilizado: Controladores y dispositivos Android, drones agrícolas DJI Agras (líneas MG y T10 a T100), baterías inteligentes, generadores y cargadores industriales.
+
+Lenguajes de programación: Kotlin, Java.
+
+Mecánica de funcionamiento: El sistema actúa como un escáner automotriz (OBD) pero para drones de gran porte. Traduce de forma inmediata los complejos códigos de error internos del dron (códigos HMS) en una guía interactiva paso a paso en español. Esto le permite al técnico seguir un árbol de diagnóstico dinámico en campo para resolver fallas en motores, radares o baterías, guardando un historial completo de reparaciones por número de serie.
