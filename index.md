@@ -1,3 +1,98 @@
+Rio_Salado: AI-HydroFlow Navigation System
+DJI Enterprise AI Challenge 2026 — Autonomous Level-4 hydrological surveillance platform for the Cuenca del Salado, Buenos Aires Province, Argentina.
+
+CI/CD — Manifold 3 ARM64 Platform ROS 2 License
+
+📋 Summary
+AI-HydroFlow Salado is a Level-4 autonomous UAV system designed for real-time tracking of surface water runoff in the ultra-flat pampean terrain of the Cuenca del Salado. By fusing centimetre-level RTK positioning, LiDAR-derived Digital Terrain Models (DTM), and thermal water segmentation, the system computes the dominant hydrological flow direction at 10 Hz and autonomously navigates the UAV along active drainage paths — enabling early-warning flood modelling and environmental assessment missions without human intervention.
+
+🛠 Hardware Architecture
+Component	Model	Role
+UAV	DJI Matrice 350 RTK	Aerial platform — IP55 weatherproofing, 38 min endurance
+Onboard Computer	DJI Manifold 3 (NVIDIA Jetson Orin NX)	ARM64 edge inference at 10–20 TOPS
+LiDAR	DJI Zenmuse L2	High-density point cloud → DTM generation
+Thermal Camera	DJI Zenmuse H30T	LWIR thermal segmentation of water surfaces
+GNSS	Integrated D-RTK 2 network	Centimetre-level WGS-84 positioning
+Obstacle Avoidance	Omnidirectional optical + Radar CSM	Active collision avoidance
+🔬 Core Innovation — Thermo-Topographic Gradient Navigation
+The Challenge: Ultra-Flat Terrain
+The Cuenca del Salado presents slopes often below 0.3 %, making standard optical flow or slope-based navigation unreliable. Raw LiDAR point clouds contain micro-relief noise that masks the true macro-drainage gradient.
+
+2-D Gaussian DTM Smoothing
+Raw LiDAR elevations are smoothed with a 2-D Gaussian filter (σ = 2.0 pixels ≈ 0.5 m at 0.25 m/px resolution) to suppress high-frequency noise while preserving the drainage macro-gradient:
+
+Z_smooth = G_σ * Z_raw
+Implementation (src/hydro_logic.py):
+
+from scipy.ndimage import gaussian_filter
+
+def apply_gaussian_filter(matrix, sigma=2.0):
+    return gaussian_filter(matrix, sigma=sigma)
+Numerical Flow Gradient (∇z)
+The dominant flow direction is derived from the numerical gradient of the smoothed DTM, negated to point downhill, then gated by a binary water mask from thermal segmentation:
+
+∇z = (∂Z/∂x, ∂Z/∂y)
+flow_direction = −∇z / ‖∇z‖      # unit vector pointing downhill (ENU frame)
+grad_row, grad_col = np.gradient(smoothed_dtm)
+v_east  =  (-grad_col)[water_mask].mean()   # column axis → East
+v_north = -(-grad_row)[water_mask].mean()   # row↓ = south, so negate for North
+The final bearing blends the topographic gradient (weight 0.7) with the thermal-gradient bearing (weight 0.3) for robustness during LiDAR occlusion by dense vegetation.
+
+🤖 ROS 2 Node Architecture
+/dji_osdk/rtk_position      ──►┐
+/dji_osdk/lidar_pointcloud  ──►│  HydroFlowPilot Node  ──► /dji_osdk/velocity_cmd
+/dji_osdk/thermal_image     ──►┘
+/dji_osdk/battery_percentage ─►
+Update rate: 10 Hz control loop (src/main.py)
+Cruise altitude: 70 m AGL (RTK-corrected altitude hold)
+Coordinate frame: WGS-84 horizontal / ENU local velocity frame
+Failsafe System
+Condition	Automated Response
+Battery ≤ 20 %	rtk_manager.select_nearest_node() → centimetre-precision RTK landing
+Obstacle < 5 m	Lateral avoidance manoeuvre + resume heading
+Power-line radar alert	+50 m altitude gain + waypoint reroute
+RTK signal lost > 5 s	Hover + broadcast distress beacon
+Geofence breach	Immediate return-to-home
+🐳 Setup & Deployment
+Prerequisites
+Docker with Buildx (for ARM64 cross-compilation)
+Python ≥ 3.8 with numpy, scipy, pytest
+Local Development (x86-64)
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Run unit tests
+PYTHONPATH=src pytest tests/unit/test_hydro_logic.py -v
+Docker (ARM64 — DJI Manifold 3)
+The Docker image is based on NVIDIA L4T r35.2.1 (nvcr.io/nvidia/l4t-base:r35.2.1), the official NVIDIA Linux-for-Tegra image compatible with the Manifold 3's Jetson Orin NX.
+
+# Build for ARM64 (requires QEMU on x86 host)
+docker buildx build \
+  --platform linux/arm64 \
+  -t ai-hydroflow-salado:latest \
+  -f docker/Dockerfile .
+
+# Run tests inside the ARM64 container
+docker run --rm --platform linux/arm64 \
+  ai-hydroflow-salado:latest
+Production Deployment
+# OTA update to Manifold 3 via LTE link
+docker push <registry>/ai-hydroflow-salado:latest
+# Manifold 3 pulls the new image automatically via the onboard OTA agent
+⚙️ CI/CD Pipeline
+GitHub Actions (.github/workflows/ci_cd_manifold.yml) runs three sequential jobs on every push to main or develop:
+
+Unit Tests (x86-64) — Fast pytest validation of hydro_logic.py with coverage report.
+Build ARM64 Docker Image — Cross-compiles the L4T image via QEMU ARM64 emulation.
+Integration Tests (ARM64 via QEMU) — Runs the full pytest suite inside the ARM64 container to validate the binary-compatible build.
+
+
+Specialist in UAV-based environmental sensing, ROS 2 navigation systems and edge AI deployment on NVIDIA Jetson platforms.
+
+© 2026 Emiliano Perez — AI-HydroFlow Salado. Submitted to DJI Enterprise AI Challenge 2026.
+
+
+
 ConteoVectorial — Contador de Ganado con Visión por Computadora
 📌 Resumen
 Aplicación Android para vuelos con dron que realiza conteo vectorial de ganado en tiempo real mediante Edge AI. Procesa el stream de vídeo FPV del dron, detecta los keypoints de cada animal (cabeza y cola) con un modelo YOLO-Pose optimizado en NCNN, rastrea cada individuo como un vector y lo cuenta cuando cruza una línea virtual. También permite registrar capturas georreferenciadas para validación y re-entrenamiento del modelo. Resuelve el problema de conteos manuales lentos, subjetivos y difíciles de auditar desde el aire.
